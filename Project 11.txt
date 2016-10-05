@@ -1,0 +1,1234 @@
+#include<stdio.h>
+#include<conio.h>
+#include<malloc.h>
+#define max_node 20
+/*#include<process.h>  */
+struct node
+{
+	int data;
+	int comp_cost;
+	int comm_cost;
+	struct node *link;
+};
+struct node *p, *last, *q;
+struct node *adjacency[max_node];
+
+
+struct pnode
+{
+	int data;
+	int comp_cost;
+	struct pnode *link;
+};
+struct pnode *pp, *qq, *rr;
+struct pnode *padjacency[max_node];
+
+
+int n, l;
+int k = 0, f = 0, temp;
+int m, mold, kold;
+int i, al, j, vertex, cpnlen, totcpn = 0, pno = 0, est = 0, sflag = 0, si = 0;
+int numprocs = 0, node_map, datald = 0, datj = 0, makespan = 0;
+
+
+int degree[20];
+int in_degree[max_node];
+int out_degree[max_node];
+int min_tlevel[max_node];
+int max_blevel[max_node];
+int cp[max_node];
+int cpn[max_node];
+int cpnfin[max_node];
+int comp_array[max_node];
+int est_array[max_node];
+int schedule_done[max_node];
+int schedule_ready[max_node];
+int schedule_seq[max_node];
+int ibn[max_node];
+int ibn_old[max_node];
+int obn[max_node];
+int pc[max_node];
+int occurance[max_node];
+int dup_task[max_node][max_node];
+int est_mat[max_node][max_node];
+int dup_node[max_node][max_node];
+
+//void createdag();
+void createdag2();
+void showdag();
+void initialize();
+void cal_comp_array();
+void cal_min_tlevel();
+void cal_max_blevel();
+void schedule_cpn();
+void chk_schedulable(int);
+void cal_est(int);
+void map(int, int, int);
+void schedule_obn();
+void chk_map();
+int cal_datald(int);
+int cal_dat(int, int);
+void map(int, int);
+void show_map();
+void cal_values();
+
+void main()
+{
+	//int i, al, j, vertex;
+	//clrscr();
+	printf("this is realy new code");
+	//createdag();
+	createdag2();
+	showdag();
+	initialize();
+	_getch();
+	cal_comp_array();
+	_getch();
+	cal_min_tlevel();
+	_getch();
+	cal_max_blevel();
+	//printf("in main after cal_max_blevel ");
+	printf("in main bfore schedule_cpn");
+	schedule_cpn();
+	printf("in main after schedule_cpn");
+	schedule_obn();
+	printf("in main after schedule_obn");
+
+	printf("si in main  = %d", si);
+	for (i = 0; i < si; i++) {
+		printf("  %d ", schedule_seq[i]);
+
+	}
+	printf("\n CHK FINAL SCHEDULE SEQUENCE");
+
+
+	_getch();
+	//mapping
+	chk_map();
+	//display mapping 
+	show_map();
+	//lets do it changes
+	cal_values();
+
+
+
+	_getch();
+
+	//return(0);
+
+
+}/*end of main*/
+
+/*
+
+void createdag() {
+
+	//int i, al, j, vertex;
+	int cc, cmc;
+
+	printf("\n enter a no of vertices=");
+	scanf("%d", &n);
+	for (i = 0; i <= n - 1; i++)
+	{
+		adjacency[i] = '\0';
+		// initializing processor list
+		padjacency[i] = '\0';
+	}
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("\n enter lenth of adjacency list for node %d", i);
+		scanf("%d", &al);
+		printf("\n enter the comp cost  for node %d", i);
+		scanf("%d", &cc);
+		comp_array[i] = cc;
+		for (j = 0; j <= al - 1; j++)
+		{
+			printf("\n add adjacent vertex=");
+			scanf("%d", &vertex);
+
+			p = (struct node *)malloc(sizeof(struct node));
+			p->data = vertex;
+			p->link = '\0';
+			printf("\n enter comp cost and comm cost of new vetex");
+			scanf("%d", &cc);
+			scanf("%d", &cmc);
+			p->comp_cost = cc;
+			p->comm_cost = cmc;
+
+			if (adjacency[i] == '\0')
+			{
+				adjacency[i] = p;
+				last = p;
+			}
+			else
+			{
+				last->link = p;
+				last = last->link;
+			}
+		}
+	}
+
+	//this is new change to initialize for duplication
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < n; j++) {
+
+			dup_task[i][j] = 0;
+			est_mat[i][j] = 0;
+		}
+	}
+
+
+}
+
+*/
+
+void createdag2() {
+
+	FILE *fp, *ofp;
+	//int a, n, al, cmp, vertex;
+	char buff[100];
+	char buffstr[100];
+	char buff2[100];
+	int buffint = 0, frsttime = 0, len = 0, intlen = 0, ii;
+	int strint[1000];
+	char strnew[1000];
+
+	int i, al, j, vertex;
+	int cc, cmc;
+
+	for (i = 0; i < 1000; i++){
+		strnew[i] = '\0';
+	}
+
+	fp = fopen("C:/Users/chetan/Desktop/test2file.txt", "r");
+	//ofp = fopen("C:/Users/chetan/Desktop/otestfile.txt", "w");
+	//fprintf(stderr, fp);
+	//scanf("%d",&a);
+
+	if (fp == NULL) {
+		fprintf(stderr, "Can't open input file in.list!\n");
+		_getch();
+		//exit(1);
+	}
+	else{
+
+
+		while (!(feof(fp))){
+
+			fgets(buff, 100, fp);
+			//puts(buff);
+			//printf("\nbuff = %s\n", buff);
+			//_getch();
+			for (i = 0; i < 1000; i++){
+				strnew[i] = '\0';
+				strint[i] = 0;
+			}
+			//if (frsttime == 1){
+			len = 0;
+			//strnew = "";
+			for (i = 0; i < 1000; i++){
+				//printf("\nbuff[i] = %c", buff[i]);
+				if (buff[i] == '#'){
+					break;
+				}
+				len = len + 1;
+				strnew[i] = buff[i];
+			}
+			//printf("len = %d", len);
+
+
+
+			//printf("\n here is new string");
+			k = 0;
+			for (i = 0; i < len; i++){
+				if (i % 2 == 0){
+
+					printf("\n%c ", strnew[i]);
+					strint[k] = strnew[i] - '0';
+					k++;
+					//printf("\n strint = %d", strint);
+				}
+
+			}
+			if (frsttime == 0){
+				n = strnew[0] - '0';
+				printf("\n no of nodes = %d", n);
+				for (i = 0; i <= n - 1; i++)
+				{
+					adjacency[i] = '\0';
+					// initializing processor list
+					padjacency[i] = '\0';
+				}
+				_getch();
+
+			}
+			else{
+				intlen = k;
+				printf("\n here is INT string\n");
+				for (i = 0; i < intlen; i++){
+					printf("%d ", strint[i]);
+				}
+				al = strint[2];
+				printf("\n al of %d is %d", frsttime, al);
+				cc = strint[1];
+				printf("\n cmp of %d is %d", frsttime, cc);
+				_getch();
+				ii = frsttime - 1;
+				comp_array[ii] = cc;
+				k = 3;
+				for (j = 0; j <= al - 1; j++)
+				{
+					//printf("\n add adjacent vertex=");
+					//scanf("%d", &vertex);
+
+					p = (struct node *)malloc(sizeof(struct node));
+					p->data = strint[k] - 1;
+					k = k + 1;
+					p->link = '\0';
+					//printf("\n enter comp cost and comm cost of new vetex");
+					//scanf("%d", &cc);
+					//scanf("%d", &cmc);
+					cc = 0;
+					cmc = strint[k];
+					k = k + 1;
+					p->comp_cost = cc;
+					p->comm_cost = cmc;
+
+					if (adjacency[ii] == '\0')
+					{
+						adjacency[ii] = p;
+						last = p;
+					}
+					else
+					{
+						last->link = p;
+						last = last->link;
+					}
+				}//for
+			} //else frst time
+
+			//}//while cha
+
+
+			frsttime = frsttime + 1;
+			//_getch();
+
+
+		}
+	}
+
+
+	fclose(fp);
+
+	//this is new change to initialize for duplication
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < n; j++) {
+
+			dup_task[i][j] = 0;
+			est_mat[i][j] = 0;
+		}
+	}
+
+	//adding comp cost
+
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("\n node %d \n", i);
+		p = adjacency[i];
+		while (p != '\0')
+		{
+			vertex = p->data;
+			p->comp_cost = comp_array[vertex];
+			//printf("\n %d %d %d", p->data, p->comp_cost, p->comm_cost);
+			p = p->link;
+		}
+	}
+
+}
+
+void showdag() {
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("\n node %d \n", i);
+		p = adjacency[i];
+		while (p != '\0')
+		{
+			printf("\n %d %d %d", p->data, p->comp_cost, p->comm_cost);
+			p = p->link;
+		}
+	}
+
+}
+
+void initialize() {
+	for (i = 0; i <= n - 1; i++)
+	{
+		in_degree[i] = 0;
+		out_degree[i] = 0;
+		min_tlevel[i] = 0;
+		max_blevel[i] = 0;
+		cp[i] = 0;
+		cpn[i] = 0;
+		cpnfin[i] = 0;
+		schedule_done[i] = 0;
+		schedule_ready[i] = 0;
+		schedule_seq[i] = 0;
+		ibn[i] = 0;
+		ibn_old[i] = 0;
+		obn[i] = 0;
+		pc[i] = 0;
+		occurance[i] = 0;
+	}
+	printf("\n here are initialized values");
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("%d ", in_degree[i]);
+	}
+}
+
+void cal_comp_array() {
+
+	/*for (i = 0; i <= n - 1; i++)
+	{
+	printf("\n node %d \n", i);
+	p = adjacency[i];
+	comp_array[i] = p->comp_cost;
+	}*/
+	printf("\n here is comp array n n = %d", n);
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("\n node %d  %d", i, comp_array[i]);
+	}
+
+
+}
+
+
+void cal_min_tlevel() {
+	int v, cc, cmc, cur_sum;
+
+	for (i = 0; i <= n - 1; i++)
+	{
+		//printf("\n node %d \n", i);
+		p = adjacency[i];
+		while (p != '\0')
+		{
+			v = p->data;
+			cc = comp_array[i];
+			cmc = p->comm_cost;
+			cur_sum = min_tlevel[i] + cc + cmc;
+			if ((min_tlevel[v] == 0) || (cur_sum < min_tlevel[v])) {
+				//cur_sum = min_tlevel[i] + cc + cmc;
+				min_tlevel[v] = cur_sum;
+			}/*
+			 if (cur_sum < min_tlevel[v]) {
+			 cur_sum = min_tlevel[i] + cc + cmc;
+			 min_tlevel[v] = cur_sum;
+			 }
+
+			 }*/
+			p = p->link;
+
+		}
+	}
+
+	printf("\n here is min_tlevel array  n = %d", n);
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("\n node %d  %d", i, min_tlevel[i]);
+	}
+
+}
+
+void cal_max_blevel() {
+	int v, cc, cmc, cur_sum, j = 1, max_blevelval = 0;
+	int sumcomp_cpn = 0, maxsumcomp_cpn = 0, kk = 0;
+
+	for (i = 0; i <= n - 1; i++)
+	{
+		//printf("\n node %d \n", i);
+		q = adjacency[i];
+		while (q != '\0') {
+			v = i;
+			p = q;
+			j = 1;
+			while (p != '\0')
+			{
+
+				cc = comp_array[v];
+				v = p->data;
+				cmc = p->comm_cost;
+				cur_sum = max_blevel[i] + cc + cmc;
+				//if ((max_blevel[i] == 0) || (cur_sum < max_blevel[i])) {
+				//cur_sum = min_tlevel[i] + cc + cmc;
+				max_blevel[i] = cur_sum;
+				if (i == 0) {   // to store cpn
+					cpn[j] = v;
+					j++;
+				}
+				//}
+				p = adjacency[v];
+
+			} // end of while p
+
+			if ((i == 0) && (max_blevel[i] > max_blevelval)) {
+				printf("in maxblevel greater");
+				sumcomp_cpn = 0;
+				for (k = 0; k < j; k++) {
+					cpnfin[k] = cpn[k];
+					kk = cpn[k];
+					printf("comp_array[kk] = %d", comp_array[kk]);
+					sumcomp_cpn = sumcomp_cpn + comp_array[kk];
+				}
+				totcpn = k;
+				maxsumcomp_cpn = sumcomp_cpn;
+				printf("maxsumcomp_cpn = %d", maxsumcomp_cpn);
+				/*need to initialize cpn again
+				for (k = 0; k < n; k++) {
+				cpn[k] = 0;
+
+				}*/
+
+			}
+			//latest changes if maxblevel is same ie two critical paths then compare total comp cost along paths
+			else if ((i == 0) && (max_blevel[i] == max_blevelval)) {
+				printf("in maxblevel equal");
+				sumcomp_cpn = 0;
+				for (k = 0; k < j; k++) {
+					kk = cpn[k];
+					printf("comp_array[kk] = %d", comp_array[kk]);
+					sumcomp_cpn = sumcomp_cpn + comp_array[kk];
+
+				}
+				printf("sumcomp_cpn = %d", sumcomp_cpn);
+				if (sumcomp_cpn > maxsumcomp_cpn) {
+					for (k = 0; k < j; k++) {
+						cpnfin[k] = cpn[k];
+					}
+					totcpn = k;
+					maxsumcomp_cpn = sumcomp_cpn;
+					printf("maxsumcomp_cpn = %d", maxsumcomp_cpn);
+				}
+				/*need to initialize cpn again
+				for (k = 0; k < n; k++) {
+				cpn[k] = 0;
+
+				}*/
+
+			}
+			//need to initialize cpn again
+			for (k = 0; k < n; k++) {
+				cpn[k] = 0;
+
+			}
+			if (max_blevel[i] > max_blevelval) {
+				max_blevelval = max_blevel[i];
+			}
+			max_blevel[i] = 0;
+			q = q->link;
+
+
+		} // end of while q
+
+		max_blevel[i] = max_blevelval;
+		//need to add comp cost of last node
+		max_blevel[i] = max_blevel[i] + comp_array[v];//need to chk whether there is problem with this
+
+		max_blevelval = 0;
+
+	}//end of i loop
+
+	printf("totcpn= %d ", totcpn);
+	//_getch();
+	cpnlen = max_blevel[0];
+	printf("\n here is max blevel array ");
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf("\n node %d  %d", i, max_blevel[i]);
+	}
+	printf("\n here is final CPN array ");
+	for (i = 0; i <= n - 1; i++)
+	{
+		printf(" %d ", cpnfin[i]);
+	}
+
+	printf("\n here is final CP value = %d ", cpnlen);
+
+}
+
+void schedule_cpn() {
+	schedule_seq[si] = 0;
+	si++;
+	schedule_done[0] = 1;
+	schedule_ready[0] = 1;
+	//totcpn = 3;
+	printf("totcpn in schedule_cpn = %d", totcpn);
+
+	for (i = 1; i < totcpn; i++) {
+		chk_schedulable(cpnfin[i]);
+		printf("in schedule_cpn afterchk_schedulable call and i = %d ", i);
+		_getch();
+
+	}
+
+}
+
+void chk_schedulable(int s) {
+	int v = 0, l, l1;
+	//int m;
+	int max_blevel_val = 0;
+	int min_tlevel_val = 0;
+	int cur_compval = 0;
+	int mip_ibn = 0;
+	printf("i m in chk schedulabl n s = %d and n= %d", s, n);
+	_getch;
+	k = 0;
+	for (j = 0; j < n; j++) {
+		//printf("i m in chk schedulabl n IN FOR LOOP");
+		//_getch;
+		p = adjacency[j];
+		while (p != '\0') {
+			v = p->data;
+			if (v == s) {
+				if (schedule_done[j] == 1) {
+					//continue;
+					//printf("frst break");
+					break;
+				}
+				else {
+					ibn[k] = j;
+					k++;
+					break;
+				}
+			}
+			p = p->link;
+
+		}//end of while
+		//printf("i m in chk schedulabl after while j = %d", j);
+		//_getch;
+
+
+	}//end of for
+	//printf("i m in chk schedulabl after for j = %d", j);
+	//_getch;
+	if (k == 0) {
+		printf("i m in chk schedulabl if k==0 part and s  = %d", s);
+		_getch;
+		//latest changes
+		schedule_seq[si] = s;
+		si++;
+		schedule_done[s] = 1;
+		schedule_ready[s] = 1;
+		/*m = mold;
+		for (l = 0; l < kold; l++) {
+		ibn[l] = ibn_old[l];
+		}*/
+		return;  //need to check whether it wil give a problem , whether we need return type because of this
+	}
+	else {
+		printf("in else of k k= %d and s = %d", k, s);
+		_getch;
+		for (l = 0; l < k; l++) {
+			printf(" ibn[l] = %d ", ibn[l]);
+		}
+
+		//m = 0;
+		//printf("max_blevel_val = %d and k = %d", max_blevel_val, k);
+		_getch();
+
+		for (m = 0; m < k; m++) {
+			//find mip ibn
+			max_blevel_val = 0;
+			for (l = 0; l < k; l++) {
+				l1 = ibn[l];
+				if ((max_blevel[l1] > max_blevel_val) && (schedule_done[l1] == 0)) {
+					mip_ibn = l1;
+					max_blevel_val = max_blevel[l1];
+					min_tlevel_val = min_tlevel[l1];
+					cur_compval = comp_array[l1];
+
+				}
+				else if ((max_blevel[l1] == max_blevel_val) && (schedule_done[l1] == 0)) {
+					if (min_tlevel[l1] < min_tlevel_val) {
+						mip_ibn = l1;
+						max_blevel_val = max_blevel[l1];
+						min_tlevel_val = min_tlevel[l1];
+						cur_compval = comp_array[l1];
+
+					}
+					else if ((min_tlevel[l1] == min_tlevel_val) && (schedule_done[l1] == 0)) {
+						if (comp_array[l1] > cur_compval) {
+							mip_ibn = l1;
+							max_blevel_val = max_blevel[l1];
+							min_tlevel_val = min_tlevel[l1];
+							cur_compval = comp_array[l1];
+
+						}
+
+
+					}
+
+
+				}
+
+
+
+
+			}// end of for l 
+			//todays new changes
+			printf("mip ibn today = %d ", mip_ibn);
+			//if (schedule_done[mip_ibn] == 0) {
+			if ((schedule_done[mip_ibn] == 0) && (schedule_ready[mip_ibn] == 1)) {
+				schedule_seq[si] = mip_ibn;
+				si++;
+				schedule_done[mip_ibn] = 1;
+
+			}
+			else {
+				printf("call to chk schedule inside and k = %d", k);
+				_getch();
+				mold = m;
+				kold = k;
+				for (l = 0; l < k; l++) {
+					ibn_old[l] = ibn[l];
+				}
+				chk_schedulable(mip_ibn);
+				m = mold;
+				k = kold;
+				for (l = 0; l < kold; l++) {
+					ibn[l] = ibn_old[l];
+				}
+				printf("return from  chk schedule inside and m = %d and k =%d", m, k);
+				_getch();
+
+			}
+		}//end of for m
+		printf("\n after end of m loop s= %d", s);
+		_getch();
+		if (schedule_done[s] == 0) {
+			schedule_seq[si] = s;
+			si++;
+			schedule_done[s] = 1;
+			schedule_ready[s] = 1;
+		}
+	}// end of else
+
+}
+
+void schedule_obn() {
+	k = 0;
+	int v = 0, m, l, l1;
+	int max_blevel_val = 0;
+	int min_tlevel_val = 0;
+	int cur_compval = 0;
+	int mip_obn = 0;
+	for (i = 0; i < n; i++) {
+		if (schedule_done[i] == 0) {
+			obn[k] = i;
+			k++;
+
+		}
+
+	}
+	//print obn
+	//obnlen = k ;
+	//printf("here is obn length = %d", k);
+	printf("here is obn list");
+	for (i = 0; i < k; i++) {
+		printf(" %d ", obn[i]);
+	}
+	_getch();
+
+	for (m = 0; m < k; m++) {
+		//find mip ibn
+		max_blevel_val = 0;
+		for (l = 0; l < k; l++) {
+			l1 = obn[l];
+			if ((max_blevel[l1] > max_blevel_val) && (schedule_done[l1] == 0)) {
+				mip_obn = l1;
+				max_blevel_val = max_blevel[l1];
+				min_tlevel_val = min_tlevel[l1];
+				cur_compval = comp_array[l1];
+
+			}
+			else if ((max_blevel[l1] == max_blevel_val) && (schedule_done[l1] == 0)) {
+				if (min_tlevel[l1] < min_tlevel_val) {
+					mip_obn = l1;
+					max_blevel_val = max_blevel[l1];
+					min_tlevel_val = min_tlevel[l1];
+					cur_compval = comp_array[l1];
+
+				}
+				else if ((min_tlevel[l1] == min_tlevel_val) && (schedule_done[l1] == 0)) {
+					if (comp_array[l1] > cur_compval) {
+						mip_obn = l1;
+						max_blevel_val = max_blevel[l1];
+						min_tlevel_val = min_tlevel[l1];
+						cur_compval = comp_array[l1];
+
+					}
+
+
+				}
+
+
+			}
+
+
+
+
+		}// end of for l 
+		//todays new changes
+		printf("mip obn today = %d ", mip_obn);
+		if (schedule_done[mip_obn] == 0) {
+			schedule_seq[si] = mip_obn;
+			si++;
+			schedule_done[mip_obn] = 1;
+
+		}
+
+	}//end of for m
+
+
+}
+
+void chk_map() {
+	printf("hi i m in chk_map initialy ");
+	numprocs = 0;//this indicate how many processor we shld consider while mapping(+1 than available)
+	int min_est, proc_map, endtime, diff, numprocs2 = 0;;
+	for (i = 0; i < si; i++) {
+		printf("hi i m in chk_map and i = %d ", i);
+		node_map = schedule_seq[i];
+		est = 0;
+		for (j = 0; j <= numprocs; j++) {
+			datald = cal_datald(j);
+
+			datj = cal_dat(node_map, j);
+			printf("DATALD = %d", datald);
+			printf("DATAJ = %d", datj);
+			if (datald > datj) {
+				est = datald;
+			}
+			else {
+				est = datj;
+			}
+			est_mat[node_map][j] = est;
+
+		}//end of for j
+		//set min_est to arbitary very high value;
+		printf("\n numprocs= %d", numprocs);
+		//printf("\n est 1= %d", est);
+		_getch();
+		min_est = 1000;
+		for (j = 0; j <= numprocs; j++) {
+			est = est_mat[node_map][j];
+			if (est < min_est) {
+				min_est = est;
+				proc_map = j;
+				numprocs2 = j + 1;
+			}
+		}
+		//latest most changes	
+		if (numprocs2 > numprocs) {
+			numprocs = numprocs2;
+		}
+		est_array[node_map] = min_est;
+		printf("\n MIN EST OF %d NODE IS %d", node_map, min_est);
+		_getch();
+		// to chk duplicates
+		for (j = 0; j < n; j++) {
+			//if (dup_task[node_map][j] == 1) {
+			if (dup_task[proc_map][j] == 1) {
+				//lets do it changes
+				//maintaining duplicates list for each node 
+				dup_node[node_map][j] = 1;
+
+				//check for holes before mapping duplicates too
+
+				endtime = 0;
+				rr = padjacency[proc_map];
+				while (rr != '\0') {
+					endtime = endtime + rr->comp_cost;
+					rr = rr->link;
+				}//end of while rr
+				if (endtime < est_array[j]) {
+					diff = est_array[j] - endtime;
+					//map hole, we may need hole logic while duplicating above:lets look it later
+					diff = diff * -1;
+					map(diff, proc_map);
+
+				}
+				//end of lets do it changes
+				map(j, proc_map);
+				printf("found duplicate after final mapping");
+				_getch();
+
+			}
+
+		}
+
+		//check for holes after mapping duplicate
+		endtime = 0;
+		pp = padjacency[proc_map];
+		while (pp != '\0') {
+			endtime = endtime + pp->comp_cost;
+
+			pp = pp->link;
+		}//end of while pp
+		if (endtime < est_array[node_map]) {
+			diff = est_array[node_map] - endtime;
+			//map hole, we may need hole logic while duplicating above:lets look it later
+			diff = diff * -1;
+			map(diff, proc_map);
+
+		}
+
+		//finaly map cur_node
+		map(node_map, proc_map);
+
+		//initialize dup_task matrix
+		for (j = 0; j < n; j++) {
+			for (k = 0; k < n; k++) {
+				dup_task[j][k] = 0;
+			}
+		}
+
+
+	}//end of for i
+
+
+
+}
+
+int cal_datald(int proc) {
+	printf("hi i m in cal_datald");
+	int sum_datald = 0;
+	pp = padjacency[proc];
+	while (pp != '\0') {
+		sum_datald = sum_datald + pp->comp_cost;
+		pp = pp->link;
+	}//end of while
+	printf("sum_datald= %d", sum_datald);
+	_getch();
+	return(sum_datald);
+
+}
+
+int cal_dat(int cur_node, int proc) {
+	printf("hi i m in cal_dat , cur_node = %d n proc = %d", cur_node, proc);
+	int v, pv, pred_flag, cur_dat1 = 0, cur_dat2 = 0, cur_dat3 = 0, cur_dat4 = 0, max_cur_dat = 0;
+	int datald2 = datald;
+	for (k = 0; k < n; k++) {
+		p = adjacency[k];
+		//max_cur_dat = 0;
+
+		while (p != '\0') {
+			v = p->data;
+			pred_flag = 0;
+			if (v == cur_node) {
+				pp = padjacency[proc];
+				while (pp != '\0') {  //chking whether pred mapped to same proc
+					pv = pp->data;
+					if (pv == k) {
+						pred_flag = 1;
+						break;
+
+					} //endof if
+					pp = pp->link;
+				}//end of while pp
+
+				//printf("pred_flag = %d", pred_flag);
+				if (pred_flag == 1) { //need to chk whetehr this is require  >> I THINK WE NEED IT
+					cur_dat1 = datald2;
+					if (cur_dat1 > max_cur_dat) {
+						max_cur_dat = cur_dat1;
+						break;
+					}
+				}
+				//else
+				// ifpred is onanother processor, need to chk commcost n duplication
+				if (pred_flag == 0)
+				{
+					//printf("in else part of pred flag");
+					//latest changes cur_dat2 is not required
+					//cur_dat2 = datald2 + p->comm_cost;
+
+					//printf("cur_dat2 = %d", cur_dat2);
+					cur_dat3 = est_array[k] + comp_array[k] + p->comm_cost;
+					///printf("k = %d", k);
+					//printf("/n est_array[k] = %d", est_array[k]);
+					//printf("comp_array[k] = %d", comp_array[k]);
+					//printf("p->comm_cost = %d", p->comm_cost);
+					printf("cur_dat3 = %d", cur_dat3);
+					//printf("max_cur_dat = %d", max_cur_dat);
+
+					//if (cur_dat2 > max_cur_dat) {
+					//	max_cur_dat = cur_dat2;
+					//}
+					if (cur_dat3 > max_cur_dat) {
+						max_cur_dat = cur_dat3;
+					}
+					//need to chk for duplication of k set cur_dat4 to arbitary high value
+					//cur_dat4 = 1000;
+					//if (comp_array[k] < p->comm_cost)
+					//cur_dat4 = datald2 + comp_array[k];//may not be correct if there r more duplicates
+					//latest changes
+					//cur_dat2 = est_array[k] + comp_array[k];
+					if (datald2 >= est_array[k]) {
+						cur_dat4 = datald2 + comp_array[k];
+					}
+					else {
+						cur_dat4 = est_array[k] + comp_array[k];
+					}
+					//cur_dat4 = datald2 + est_array[k] + comp_array[k];
+
+					printf("cur_dat4 = %d", cur_dat4);
+					if (cur_dat4 < cur_dat3) {
+						//if (cur_dat4 < max_cur_dat) {
+						max_cur_dat = cur_dat4;
+						dup_task[proc][k] = 1;
+						//latest changes
+						if (datald2 >= est_array[k]) {
+							datald2 = datald2 + comp_array[k];
+						}
+						else {
+							datald2 = est_array[k] + comp_array[k];
+						}
+
+					}
+
+				} //end of pred == 0
+
+			}// end of if v
+
+			p = p->link;
+		}// end of while p
+
+
+	}//end of for
+
+	printf("\n CUR_NODE = %d , PROC %d and MAX_CUR_DAT = %d ", cur_node, proc, max_cur_dat);
+	_getch();
+	return(max_cur_dat);
+
+
+
+
+}
+
+void map(int map_node, int map_proc) {
+	printf("hi i m in map map_node = %d n map_proc = %d", map_node, map_proc);
+	int holev = 0;
+	pp = (struct pnode *)malloc(sizeof(struct pnode));
+	//latest changes for holes
+	if (map_node < 0) {
+		pp->data = -1;
+		holev = map_node * -1;
+		pp->comp_cost = holev;
+		pp->link = '\0';
+
+	}
+	else {
+		pp->data = map_node;
+		pp->comp_cost = comp_array[map_node];
+		pp->link = '\0';
+	}
+	//qq = padjacency[map_proc];
+	if (padjacency[map_proc] == '\0')
+	{
+
+		//latest most most changes
+		//if it is frst node then look for whether hole can accomodate node 0 
+		//if (comp_array[0] <= holev) {
+		/*
+		if ( (map_node != 0) && (comp_array[0] <= est_array[map_node])) {
+		pp->data = 0;
+		//holev = holev - comp_array[0];
+		pp->comp_cost = comp_array[0];
+		pp->link = '\0';
+
+
+		}
+		padjacency[map_proc] = pp;
+		//latest most most changes
+		//chk whether there is still chance of hole even after accomodating  node 0
+		//if ( holev > 0) {
+		qq = (struct pnode *)malloc(sizeof(struct pnode));
+		//qq->data = -1;
+		//qq->comp_cost = holev;
+		//qq->link = '\0';
+		qq->data = map_node;
+		qq->comp_cost = comp_array[map_node];
+		qq->link = '\0';
+
+		//}
+		//padjacency[map_proc] = pp;
+		pp->link = qq;*/
+		//plast = pp;
+		padjacency[map_proc] = pp;
+	}
+	else
+	{
+		qq = padjacency[map_proc];
+		while (qq->link != '\0') {
+			qq = qq->link;
+		}
+
+		qq->link = pp;
+	}
+
+	/*to display current proc mapping
+	pp = padjacency[0];
+	while (pp != '\0')
+	{
+	printf("\n %d %d ", pp->data, pp->comp_cost);
+	pp = pp->link;
+	} */
+
+
+}
+
+void show_map() {
+	//to display current proc mapping
+	printf("\n in show map numprocs = %d", numprocs);
+	for (j = 0; j <= numprocs; j++) {
+		printf("\nProcessor = %d \n", j);
+		pp = padjacency[j];
+		while (pp != '\0') {
+			printf(" %d %d ->  ", pp->data, pp->comp_cost);
+			pp = pp->link;
+		}
+
+	}
+
+
+}
+
+void cal_values() {
+	int finnumprocs, sumcomp = 0, sumpc = 0, nofh = 0, pv, totdup = 0, totpc = 0, sumtpc = 0, avgpc = 0;
+	int pcpu = 0, pnw = 0, ptrans = 0, ptot = 0, parent = 0, parent_avail = 0, totcommcost = 0, maff, data_avail, tot_energy = 0;
+
+	makespan = 0;
+	finnumprocs = numprocs;
+	printf("\n FINAL NUMPROCS = %d", finnumprocs);
+	_getch();
+
+	for (j = 0; j < numprocs; j++) {
+		sumcomp = 0;
+		sumpc = 0;
+		pp = padjacency[j];
+		while (pp != '\0') {
+			sumcomp = sumcomp + pp->comp_cost;
+			pv = pp->data;
+			printf("pv= %d", pv);
+			printf("pc[j] = %d", pc[j]);
+			if (pv >= 0) {
+				sumpc = sumpc + pp->comp_cost;
+			}
+			else{
+				nofh = nofh + 1;
+			}
+			sumtpc = sumtpc + pp->comp_cost;
+			printf("sumpc = %d", sumpc);
+			occurance[pv] = occurance[pv] + 1;
+			pp = pp->link;
+		}
+		totpc = totpc + sumpc;
+		if (sumcomp > makespan) {
+			makespan = sumcomp;
+		}
+
+	}
+	printf("\nNumber of processors required= %d", finnumprocs);
+	printf("\nMake span = %d", makespan);
+	for (i = 0; i < n; i++) {
+		//printf("pc[j]= %d", pc[j]);
+		//printf("occurance[i] = %d", occurance[i]);
+		//totpc = totpc + pc[j];
+		if (occurance[i] > 1) {
+			totdup = totdup + 1;
+		}
+
+	}
+	printf("totpc = %d", totpc);
+	printf("sumtpc = %d", sumtpc);
+	printf("finnumprocs= %d", finnumprocs);
+	avgpc = totpc / finnumprocs;
+	printf("\ntotpc = %d", totpc);
+	printf("\n no of holes = %d", nofh);
+	printf("\nAverage Processor Consumption = %d", avgpc);
+	printf("\nTotal Duplicates = %d", totdup);
+
+	/*LETS DO IT 2 CHANGES*/
+
+
+
+	/*to calculate total comm time*/
+	for (i = 0; i < n; i++) {
+
+		for (j = 0; j < n; j++) {
+			p = adjacency[j];
+			while (p != '\0'){
+				if (p->data == i){
+					parent = j;
+					for (k = 0; k <= numprocs; k++){
+						pp = padjacency[k];
+						parent_avail = 0; maff = 0; data_avail = 0;
+						while (pp != '\0'){
+							if (pp->data == parent){
+								parent_avail = 1;
+							}
+							//pp = pp->link;
+							if (pp->data == i){
+								//if (parent_avail == 0){
+								data_avail = 1;
+								if (parent_avail == 1){
+									//totcommcost = totcommcost + p->comm_cost;
+									maff = 1;
+									break;
+
+
+								}
+							}
+							pp = pp->link;
+
+						}// end of while (pp != '\0')
+
+						if (data_avail == 1){
+							if (maff == 0){
+								totcommcost = totcommcost + p->comm_cost;
+							}
+
+						}
+
+
+
+					}// end of for (k 
+					break;
+
+				}//end of if
+				p = p->link;
+
+			}// end of while (p != '\0')
+		} // end of for j
+	} // end of for i
+
+	printf("\n TOTAL COMP COST = %d", totpc);
+	printf("\n TOTAL NO OF HOLES = %d", nofh);
+	printf("\n TOTAL COMM COST = %d", totcommcost);
+
+
+	/*Here we have considered some constant value of power, need to modify later*/
+	pcpu = 70;
+	pnw = 7;
+	ptrans = 1;
+
+	printf("\n Considered values of power = %d, %d n %d", pcpu, pnw, ptrans);
+
+	tot_energy = (pcpu * totpc) + (pnw * totcommcost) + (2 * ptrans * nofh);
+
+	printf("\n TOTAL ENERGY = %d", tot_energy);
+	_getch();
+
+
+}
