@@ -101,7 +101,6 @@ void main()
 	}
 	printf("\n CHK FINAL SCHEDULE SEQUENCE");
 
-
 	_getch();
 	//mapping
 	chk_map();
@@ -109,8 +108,6 @@ void main()
 	show_map();
 	//lets do it changes
 	cal_values();
-
-
 
 	_getch();
 
@@ -211,7 +208,6 @@ void createdag2() {
 		//exit(1);
 	}
 	else{
-
 
 		while (!(feof(fp))){
 
